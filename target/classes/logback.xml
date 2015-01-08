@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+	<appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
+		<syslogHost>${HOSTNAME}</syslogHost>
+		<facility>USER</facility>
+		<suffixPattern>${HOSTNAME} %d{ISO8601} %-5p %c{0} - %m%n</suffixPattern>
+	</appender>
+		<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+		<!-- encoders are assigned by default the type ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
+		<append>true</append>
+		<file>logs/urest-user-activity.log</file>
+		<encoder>
+			<pattern>${HOSTNAME} %d{ISO8601} %-5p %c{0} - %m%n</pattern>
+		</encoder>
+	</appender>
+	<logger name="user-activity" level="INFO" >
+		<appender-ref ref="FILE" />
+		<appender-ref ref="SYSLOG" />
+	</logger>
+		<logger name="all-activity" level="INFO" >
+		<appender-ref ref="SYSLOG" />
+	</logger>
+	<root level="INFO">
+		<appender-ref ref="SYSLOG" />
+	</root>
+</configuration>
