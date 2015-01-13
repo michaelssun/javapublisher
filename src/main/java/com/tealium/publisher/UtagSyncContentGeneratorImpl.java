@@ -1,26 +1,40 @@
 package com.tealium.publisher;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.mongodb.DBObject;
+import com.tealium.publisher.utag.sync.ExtContentGeneratorFactory;
+import com.tealium.publisher.util.UtagSyncUtil;
 
 public class UtagSyncContentGeneratorImpl extends
 		AbstractFileContentGeneratorImpl {
+	private static Logger logger = LoggerFactory
+			.getLogger(UtagSyncContentGeneratorImpl.class);
 
-	private static final String UTAG_SYNC_DEFAULT = "//tealium universal tag - utag.sync ut4.0.$date, Copyright $year Tealium.com Inc. All Rights Reserved.\n";
 
 	@Inject(optional = true)
-	@Named("generatedSyncFilePath")
+	@Named(GENERATED_SYNC_FILE_PATH)
 	private String generatedSyncFilePath;
+	
+	@Inject
+	ExtContentGeneratorFactory extContentGeneratorFactory;
 
 	@Override
 	public String generateContent(DBObject profile, DBObject queryParams,DBObject config)
 			throws IOException {
-		Preconditions.checkArgument(profile == null, "Empty profile!");
+		Preconditions.checkArgument(profile != null, "Empty profile!");
 		String templateContent = this
 				.readTemplateContent(getTemplateLocation());
 
@@ -29,22 +43,48 @@ public class UtagSyncContentGeneratorImpl extends
 
 		templateContent = templateContent.replace(UTVERSION, date);
 		templateContent = templateContent.replace(UTSYNC,
-				getUtagSyncForAccount(profile, queryParams, config));
+				generateSyncedExtensions(profile, queryParams, config));
 		templateContent = templateContent.replace(UTYEAR, String.valueOf(year));
 
 		this.writeToFile(generatedSyncFilePath, templateContent);
 
-		return UTAG_SYNC_DEFAULT + templateContent;
+		return  templateContent;
 	}
 
 	@Override
 	public String getTemplateLocation() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.getClass().getClassLoader().getResource("utag.sync.js").getPath(); 
 	}
 
-	private String getUtagSyncForAccount(DBObject profile, DBObject queryParams,DBObject config) {
-		throw new RuntimeException("to be implemented");
+	@SuppressWarnings("unchecked")
+	private String generateSyncedExtensions(DBObject profile, DBObject queryParams,DBObject config) {
+		DBObject extensionData=(DBObject) profile.get(SUBOBJECT_CUSTOMIZATIONS);
+		StringBuilder sb=new StringBuilder();
+		 
+		for (String key : UtagSyncUtil.getAlphabeticSortedKeys(extensionData.keySet())) {
+			DBObject customization = (DBObject)extensionData.get(key);
+			Object status=  customization.get("status");
+			Object multiScopeLoad=customization.get("multiScopeLoad");
+			
+			if (status!=null&&"active".equals(status)&&multiScopeLoad!=null&&multiScopeLoad.toString().indexOf("sync")>=0) {
+				String id=(String) customization.get("id"); 
+				if (!Strings.isNullOrEmpty(id)) {
+					String ext=extContentGeneratorFactory.getExtContentGenerator(id).generateExtensionContent((DBObject) extensionData.get(key), config, profile);
+					if (!Strings.isNullOrEmpty(ext)) {
+						sb.append("\n").append(ext);
+					}else{
+						if (logger.isDebugEnabled()) {
+							logger.debug("no extension content for id: "+id);
+						}
+					}
+				}else{
+					logger.error("null or empty ID for profile "+profile.get("_id"));
+				}
+				
+			}
+		}
+		
+		return sb.toString();
 	}
 
 }

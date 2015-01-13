@@ -1,0 +1,23 @@
+{
+ "account_dir"  : "/data/utui/data/accounts"
+,"schedule_dir" : "/data/utui/data/schedule"
+,"js_dir"       : "/var/www/utui.tealiumiq.com/stratocaster/js"
+,"template_dir" : "/var/www/utui.tealiumiq.com/stratocaster/templates"
+,"publish_url"  : "//localhost"
+,"llnw_uri"     : "http://DoNotUse/o43/utag"
+,"dle_publish_url" : "//DoNotUse{}"
+,"primary_database_name" : "core"
+,"engine_cfg"   : {
+    "rabbitmq" : {
+        "host" : "172.16.3.10"
+       ,"user" : "utui_app"
+       ,"password" : "lksdfjhy3lkj4"
+       ,"vhost" : "/utui"
+    }
+    ,"mongodb" : {
+        "primary_database_name" : "core"
+        ,"host" : "172.16.3.11"
+        ,"port" : "27017"
+    }
+ }
+}

@@ -10,15 +10,17 @@ import com.mongodb.DBObject;
 public interface ExtContentGenerator {
 
 	public static final Pattern KEY_PATTERN_ONE_DIGITAL_SET_CHARS = Pattern
-			.compile("^[\\d+]_set.*");
+			.compile("^[0-9]+_set.*");
+	public static final Pattern KEY_PATTERN_ONE_DIGITAL_FILTER_CHARS = Pattern
+			.compile("^[0-9]+_filter.*");
 	public static final Pattern KEY_PATTERN_ONE_DIGITAL_SET = Pattern
-			.compile("^[\\d+]_set");
+			.compile("^[0-9]+_set");
 	public static final Pattern KEY_PATTERN_TWO_DIGITAL_SET = Pattern
-			.compile("^[\\d+]_[\\d+]_set");
+			.compile("^[0-9]+_[0-9]+_set");
 	public static final Pattern KEY_PATTERN_ONE_DIGITAL_SOURCE = Pattern
-			.compile("^[\\d+]_source");
+			.compile("^[0-9]+_source");
 	public static final Pattern KEY_PATTERN_TWO_DIGITAL_SOURCE = Pattern
-			.compile("^[\\d+]_[\\d+]_source");
+			.compile("^[0-9]+_[0-9]+_source");
 	public static final Pattern DIGIT_PATTERN = Pattern.compile("[0-9]+");
 	
 	public static final Pattern JS_PATTERN = Pattern.compile("^js\\.(.*)$");
@@ -27,13 +29,25 @@ public interface ExtContentGenerator {
 	public static final String VALUE_NO = "no";
 	public static final String VALUE_YES = "yes";
 	public static final String VALUE_ALL = "all";
-	public static final String FILTER = "filter";
-	public static final String FILTER_TYPE = "filtertype";
-	public static final String SOURCE = "source";
+	public static final String VALUE_TEXT = "text";
+	
+	public static final String ELEMENT_FILTER = "filter";
+	public static final String ELEMENT_FILTER_TYPE = "filtertype";
+	public static final String ELEMENT_SOURCE = "source";
+	public static final String ELEMENT_SETOPTION = "setoption";
+	public static final String ELEMENT_SETTOTEXT = "settotext";
+	public static final String ELEMENT_SETTOVAR = "settovar";
+	public static final String ELEMENT_MONGO_ID = "_id";
+	public static final String ELEMENT_VAR = "var";
+	public static final String ELEMENT_PERSISTENCE = "persistence";
+	public static final String ELEMENT_PERSISTENCETEXT = "persistencetext";
+	public static final String ELEMENT_ALLOWUPDATE = "allowupdate";
 
+	
 	public static final String REMOVE_PATTERN_JS = "js.";
 	public static final String SYNC_ID_PREFIX = "10000";
 	public static final int SYNC_ID_MAX = 35;
+	public static final String INVOCATION_SCOPE_SYNC="sync";
 
 	public static final Collection<String> SYNC_ID_LIST_DEFAULT = Collections
 			.unmodifiableCollection(Arrays.asList("100001", "100002"));
@@ -44,13 +58,14 @@ public interface ExtContentGenerator {
 	 * 
 	 * @param customizedExtensionData
 	 * @param config
+	 * @param profile 
 	 * @return
 	 */
 	public String generateExtensionContent(DBObject customizedExtensionData,
-			DBObject config);
+			DBObject config, DBObject profile);
 
 }
-
+//generateExtension("sync",$configData, $extensionData->{$k}->{id}, $extensionData->{$k}, $profileData)
 
 //
 //

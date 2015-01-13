@@ -5,9 +5,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ExtContentGeneratorFactory {
 	private static final String UTAG_SYNC_PACKAGE = "com.tealium.publisher.utag.sync.ExtContentGeneratorImpl";
-	private static Map<String, ExtContentGenerator> ExtContentGeneratorMap = new ConcurrentHashMap<String, ExtContentGenerator>();
+	private static final Map<String, ExtContentGenerator> ExtContentGeneratorMap = new ConcurrentHashMap<String, ExtContentGenerator>();
+	private static final int ID_UPPER = 4;// 35;
+
 	static {
-		for (int id = 1; id < 36; id++) {
+		for (int id = 1; id < ID_UPPER + 1; id++) {
 			ExtContentGenerator instance;
 			String className = UTAG_SYNC_PACKAGE
 					+ ExtContentGenerator.SYNC_ID_PREFIX + id;
@@ -22,6 +24,10 @@ public class ExtContentGeneratorFactory {
 			ExtContentGeneratorMap.put(ExtContentGenerator.SYNC_ID_PREFIX + id,
 					instance);
 		}
+	}
+
+	public ExtContentGeneratorFactory() {
+
 	}
 
 	public ExtContentGenerator getExtContentGenerator(String id) {

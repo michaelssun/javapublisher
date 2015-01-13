@@ -28,7 +28,7 @@ public class ExtContentGeneratorImpl100003 implements ExtContentGenerator {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public String generateExtensionContent(DBObject customizedExtensionData,
-			DBObject config) {
+			DBObject config, DBObject profile) {
 		Preconditions.checkNotNull(config, "No configuration was defined!");
 
 		if (customizedExtensionData == null) {
@@ -40,15 +40,14 @@ public class ExtContentGeneratorImpl100003 implements ExtContentGenerator {
 				.getCondition(customizedExtensionData);
 		Collection<String> orConditionList = UtagSyncUtil
 				.getOrCondition(condition);
-		Map<String, Map<String, String>> setHash = getSetHash(customizedExtensionData);
+		Map<String, Map<String, String>> setHash =UtagSyncUtil. getSetHash(customizedExtensionData,KEY_PATTERN_ONE_DIGITAL_SET_CHARS);
 
 		String filteredCond = null;
 		if (orConditionList.size() == 1) {
 			filteredCond = ((List) orConditionList).get(0).toString();
 		} else if (orConditionList.size() > 1) {
 			filteredCond = StringUtils.join(orConditionList, "||");
-		}
-
+		} 
 		// #generate set content
 		Collection<String> setContentList = getSetContent(setHash);
 		if (setContentList.size() > 0) {
@@ -62,9 +61,8 @@ public class ExtContentGeneratorImpl100003 implements ExtContentGenerator {
 	private Collection<String> getSetContent(
 			Map<String, Map<String, String>> setHash) {
 		Collection<String> setContentList = new ArrayList<String>();
-		Set<String> keySet = setHash.keySet();
-		Collections.sort(new ArrayList<String>(keySet));
-		for (String key : keySet) {
+
+		for (String key : UtagSyncUtil.getAlphabeticSortedKeys(setHash.keySet())) {
 			Map<String, String> map = setHash.get(key);
 			if (map.get("set") != null) {
 				map.put("set", map.get("set").replace("js.", ""));
@@ -98,23 +96,6 @@ public class ExtContentGeneratorImpl100003 implements ExtContentGenerator {
 		return setContentList;
 	}
 
-	private Map<String, Map<String, String>> getSetHash(DBObject data) {
-		Map<String, Map<String, String>> setHash = new HashMap<String, Map<String, String>>();
-		Set<String> keySet = data.keySet();
-		Collections.sort(new ArrayList<String>(keySet));
-		for (String key : keySet) {
-			Matcher matcher = KEY_PATTERN_ONE_DIGITAL_SET_CHARS.matcher(key);
-			if (matcher.find()) {
-				Map<String, String> pair = new HashMap<String, String>();
-				String[] vals = matcher.group().split("_");
-
-				pair.put(vals[1], (String) data.get(key));
-				setHash.put(vals[0], pair);
-			}
-		}
-
-		return setHash;
-	}
 }
 
 //}elsif($id eq '100003'){

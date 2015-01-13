@@ -17,10 +17,18 @@ import com.mongodb.DBObject;
 public abstract class AbstractFileContentGeneratorImpl implements
 		FileContentGenerator {
 	
-	protected static final  Format DATE_FORMATTER=new SimpleDateFormat("yyyymmddHHMM");
-	protected static final String UTVERSION = "##UTVERSION##";
-	protected static final String UTYEAR = "##UTYEAR##";
-	protected static final String UTSYNC = "##UTSYNC##";
+	public static final  Format DATE_FORMATTER=new SimpleDateFormat("yyyymmddHHMM");
+	public static final String UTVERSION = "##UTVERSION##";
+	public static final String UTYEAR = "##UTYEAR##";
+	public static final String UTSYNC = "##UTSYNC##";
+	
+	public static final String GENERATED_SYNC_FILE_PATH = "generatedSyncFilePath";
+	public static final String UTAG_SYNC_EXT_GENERATOR = "utag.sync.ext.generator";
+	public static final String CONFIG_PUBLISH = "publish.json";
+
+
+	public static final String SUBOBJECT_CUSTOMIZATIONS = "customizations";
+	
 	
 	@Inject(optional = true)
 	protected Charset encoding = StandardCharsets.UTF_8;
@@ -51,9 +59,9 @@ public abstract class AbstractFileContentGeneratorImpl implements
 	
 
 	@Override
-	public String generateContent(DBObject profile, DBObject queryParams)
+	public String generateContent(DBObject profile, DBObject config)
 			throws IOException {
-		return generateContent(profile, queryParams, null);
+		return generateContent(profile, null, config);
 	}
 	
 }

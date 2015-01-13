@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
@@ -21,14 +22,70 @@ public class UtagSyncUtil {
 	public static final String CONDITION_FILTER_PATTERN_REGEX = "[\\/\\$\\%\\(\\)\\*\\+\\.\\?\\[\\\\\\]\\{\\|\\}]";
 	public static Pattern CONDITION_FILTER_PATTERN = Pattern
 			.compile(CONDITION_FILTER_PATTERN_REGEX);
+	/**
+	 * retrieve special data from input customization element to fulfill condition
+	 * @param customizationEntry
+	 * @param pattern
+	 * @return
+	 */
+	public static Map<String, Map<String, String>> getSetHash(DBObject customizationEntry, Pattern pattern) {
+		Map<String, Map<String, String>> setHash = new HashMap<String, Map<String, String>>();
+		
+		for (String key : UtagSyncUtil.getAlphabeticSortedKeys(customizationEntry.keySet())) {
+			Matcher matcher = pattern.matcher(key);
+			if (matcher.find()) {
+				Map<String, String> pair = new HashMap<String, String>();
+				String[] vals = matcher.group().split("_");
+
+				pair.put(vals[1], (String) customizationEntry.get(key));
+				if (setHash.get(vals[0])!=null) {
+					setHash.get(vals[0]).putAll(pair);
+				}else{					
+					setHash.put(vals[0], pair);
+				}
+			}
+		}
+
+		return setHash;
+	}
+	/**
+	 * remove the characters at first occurance matching pattern
+	 * 
+	 * @param firstOccurPattern
+	 * @param src
+	 * @param charsRemoved
+	 * @return
+	 */
+	public static String removeFirstPatternedChars(Pattern firstOccurPattern,String src,String charsRemoved){
+		if (!Strings.isNullOrEmpty(src)&&firstOccurPattern.matcher(src).find()) {
+			return src.replaceFirst(charsRemoved, "");
+		}
+		return src;
+	}
 	
+	/**
+	 * sorting a string collection 
+	 * @param keys
+	 * @return
+	 */
+	public static Collection<String> getAlphabeticSortedKeys(Collection<String> keys) {
+		List<String> sortedKeys = new ArrayList<String>(keys);
+		Collections.sort(sortedKeys);
+
+		return sortedKeys;
+	}
+	
+	/**
+	 * get conditions for [0..9]+_source*  or [0..9]+_[0..9]+_source* keys
+	 * 
+	 * @param data
+	 * @return
+	 */
 	public static  Map<String, Map<String, Map<String, String>>> getCondition(
 			DBObject data) {
 		Map<String, Map<String, Map<String, String>>> condition = new HashMap<String, Map<String, Map<String, String>>>();
-
-		Set<String> keySet = data.keySet();
-		Collections.sort(new ArrayList<String>(keySet));
-		for (String key : keySet) {
+  
+		for (String key : UtagSyncUtil.getAlphabeticSortedKeys(data.keySet())) {
 			if (KEY_PATTERN_ONE_DIGITAL_SOURCE.matcher(key).find()
 					|| KEY_PATTERN_TWO_DIGITAL_SOURCE.matcher(key).find()) {
 				condition.put(key.substring(0, key.indexOf("_")),
@@ -48,27 +105,32 @@ public class UtagSyncUtil {
 		boolean is2DigitsKey = key.indexOf("_") != key.lastIndexOf("_");
 
 		Map<String, String> subCondition = new HashMap<String, String>();
-		subCondition.put(SOURCE, (String) data.get(key));
+		subCondition.put(ELEMENT_SOURCE, (String) data.get(key));
 		String digitPart = key.substring(0, key.indexOf("_"));
 		String secDigitPart = key.substring(key.indexOf("_"),
 				key.indexOf("_source"));
 
 		String keyPrefix = is2DigitsKey ? digitPart + "_" + secDigitPart
 				: digitPart;
-		subCondition.put(FILTER_TYPE,
+		subCondition.put(ELEMENT_FILTER_TYPE,
 				(String) data.get(keyPrefix + "_filtertype"));
-		subCondition.put(FILTER, (String) data.get(keyPrefix + "_filter"));
+		subCondition.put(ELEMENT_FILTER, (String) data.get(keyPrefix + "_filter"));
 
 		level1Condition.put(is2DigitsKey ? secDigitPart : "1", subCondition);
 		return level1Condition;
 	}
 	
+	/**
+	 * retrieve conditions for filter and filter type
+	 * 
+	 * @param condition
+	 * @return
+	 */
 	public static Collection<String> getOrCondition(
 			Map<String, Map<String, Map<String, String>>> condition) {
 		Collection<String> orConditionList = new ArrayList<String>();
-		Set<String> keys1 = condition.keySet();
-		Collections.sort(new ArrayList<String>(keys1));
-		for (String key1 : keys1) {
+
+		for (String key1 : UtagSyncUtil.getAlphabeticSortedKeys(condition.keySet())) {
 			List<String> andConditioin = new ArrayList<String>();
 			Map<String, Map<String, String>> level1Condition = condition
 					.get(key1);
@@ -77,13 +139,13 @@ public class UtagSyncUtil {
 			Collections.sort(new ArrayList<String>(keys2));
 
 			for (String key2 : keys2) {
-				String sourceValue = level1Condition.get(key2).get(SOURCE)
+				String sourceValue = level1Condition.get(key2).get(ELEMENT_SOURCE)
 						.replace(REMOVE_PATTERN_JS, "");
 
 				String conditionFilter = UtagSyncUtil.getConditionFilter("b['"
 						+ sourceValue + "']",
-						level1Condition.get(key2).get(FILTER_TYPE),
-						level1Condition.get(key2).get(FILTER));
+						level1Condition.get(key2).get(ELEMENT_FILTER_TYPE),
+						level1Condition.get(key2).get(ELEMENT_FILTER));
 				if (!Strings.isNullOrEmpty(conditionFilter)) {
 					andConditioin.add(conditionFilter);
 				}
@@ -104,7 +166,14 @@ public class UtagSyncUtil {
 	}
 	
 	
-
+	/**
+	 * get condition filter based on operator value
+	 * 
+	 * @param input
+	 * @param operator
+	 * @param filter
+	 * @return
+	 */
 	public static String getConditionFilter(String input, String operator,
 			String filter) {
 

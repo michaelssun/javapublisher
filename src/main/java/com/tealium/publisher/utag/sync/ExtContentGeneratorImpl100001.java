@@ -4,16 +4,15 @@ import com.mongodb.DBObject;
 
 public class ExtContentGeneratorImpl100001 implements ExtContentGenerator {
 
-	public static final String VALUE_NO = "no";
-	public static final String VALUE_YES = "yes";
-	public static final String VALUE_ALL = "all";
 	private static final String EXT_TEMPLATE_YES = "function(a,b,c){for(c in utag.loader.GV(b)){try{b[c] = (b[c] instanceof Array || b[c] instanceof Object) ? b[c] : b[c].toString().toLowerCase()}catch(e){}}}";
 	private static final String EXT_TEMPLATE_NO = "function(a,b,c,d){c=['_var_'];for(d=0;d<c.length;d++){try{b[c[d]] = (b[c[d]] instanceof Array "
 			+ "|| b[c[d]] instanceof Object) ? b[c[d]] : b[c[d]].toString().toLowerCase()}catch(e){}}}";
 
 
 	@Override
-	public String generateExtensionContent(DBObject data, DBObject config) {
+	public String generateExtensionContent(DBObject data, DBObject config, DBObject profile) {
+		
+		
 		StringBuilder sb = new StringBuilder();
 		if (VALUE_YES.equalsIgnoreCase((String) data.get(VALUE_ALL))) {
 			sb.append(EXT_TEMPLATE_YES);

@@ -28,7 +28,7 @@ public class ExtContentGeneratorImpl100002 implements ExtContentGenerator {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public String generateExtensionContent(DBObject customizedExtensionData,
-			DBObject config) {
+			DBObject config, DBObject profile) {
 		Preconditions.checkNotNull(config, "No configuration was defined!");
 
 		if (customizedExtensionData == null) {
