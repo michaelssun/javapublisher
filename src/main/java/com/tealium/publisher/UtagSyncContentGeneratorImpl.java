@@ -46,6 +46,9 @@ public class UtagSyncContentGeneratorImpl extends
 				generateSyncedExtensions(profile, queryParams, config));
 		templateContent = templateContent.replace(UTYEAR, String.valueOf(year));
 
+		if (Strings.isNullOrEmpty(generatedSyncFilePath)) {
+			generatedSyncFilePath="/tmp/"+profile.get("account")+"/"+profile.get("profile")+"/"+profile.get("revision")+"/utag.sync.js";
+		}
 		this.writeToFile(generatedSyncFilePath, templateContent);
 
 		return  templateContent;
